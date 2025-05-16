@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy cache
+.mypy_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# SQLite/MySQL/PostgreSQL database files
+*.sqlite3
+*.db
+
+# Logs
+*.log
+logs/
+*.out
+
+# Environments / Secrets
+.env
+.env.*
+
+# VS Code settings
+.vscode/
+
+# macOS / Linux / Windows system files
+.DS_Store
+Thumbs.db
+
+# Build / dist folders
+build/
+dist/
+*.egg-info/
+
+# ChromaDB / DuckDB persisted files (if used)
+chroma_db/
+*.parquet
+*.duckdb

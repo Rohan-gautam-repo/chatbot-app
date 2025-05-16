@@ -1,0 +1,140 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* AI Response Formatting */
+.ai-response h1, 
+.ai-response h2, 
+.ai-response h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.ai-response h1 {
+  font-size: 1.5rem;
+}
+
+.ai-response h2 {
+  font-size: 1.25rem;
+}
+
+.ai-response h3 {
+  font-size: 1.125rem;
+}
+
+.ai-response p {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.ai-response ul, 
+.ai-response ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ai-response li {
+  margin-bottom: 0.25rem;
+}
+
+.ai-response strong, 
+.ai-response b {
+  font-weight: 600;
+  color: #b4c6ef;
+}
+
+/* Markdown specific formatting */
+.markdown-content {
+  line-height: 1.6;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content h3 {
+  color: #b4c6ef;
+  font-size: 1.1rem;
+}
+
+.markdown-content p {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-content li p {
+  margin: 0;
+}
+
+/* Improve spacing between different sections */
+.ai-response ol,
+.ai-response ul {
+  margin-left: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Add spacing between sections */
+.ai-response p + h3,
+.ai-response ul + h3,
+.ai-response ol + h3 {
+  margin-top: 1rem;
+}
+
+/* Better visual separation between paragraphs */
+.ai-response p + p {
+  margin-top: 0.5rem;
+}
