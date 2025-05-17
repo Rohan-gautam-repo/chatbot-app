@@ -1,0 +1,26 @@
+# Node.js and npm are required to install these packages
+# This file is a reference for what needs to be installed
+# Use 'npm install' to install dependencies from package.json
+
+# Core Libraries
+react@19.0.0
+react-dom@19.0.0
+react-router-dom@7.5.2
+react-markdown@10.1.0
+
+# API/Authentication Libraries
+axios@1.9.0
+@auth0/auth0-react@2.3.0
+next-auth@4.24.11
+
+# UI Libraries
+@heroicons/react@2.2.0
+
+# Development Dependencies
+# These will be installed automatically when using npm install
+vite@6.3.1
+tailwindcss@4.1.4
+postcss@8.5.3
+autoprefixer@10.4.21
+eslint@9.22.0
+@vitejs/plugin-react@4.3.4

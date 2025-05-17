@@ -1,0 +1,40 @@
+# Core Framework
+fastapi==0.115.9
+uvicorn==0.34.2
+starlette==0.45.3
+
+# Database
+SQLAlchemy==2.0.40
+mysql-connector-python==9.3.0
+
+# Authentication & Security
+passlib==1.7.4
+bcrypt==3.2.0
+python-jose==3.4.0
+python-multipart==0.0.6
+email_validator==2.2.0
+
+# Vector Storage & Embeddings
+chromadb==1.0.9
+sentence-transformers==4.1.0
+
+# Document Processing
+python-docx==0.8.11
+docx2txt==0.8
+pytesseract==0.3.10
+pdf2image==1.16.3
+opencv-python==4.11.0.86
+
+# Utilities
+python-dotenv==1.1.0
+Pillow==10.0.0
+numpy==2.2.5
+tqdm==4.67.1
+
+# API and HTTP
+httpx==0.28.1
+requests==2.32.3
+
+# Middleware
+python-dateutil==2.9.0.post0
+asgiref==3.8.1
