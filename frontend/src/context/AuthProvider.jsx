@@ -76,13 +76,23 @@ export default function AuthProvider({ children }) {
       window.location.href = '/login';
     }
   };
+  // Update user details in context
+  const updateUser = (userData) => {
+    if (userData.username) {
+      setUser(prevUser => ({ 
+        ...prevUser,
+        username: userData.username 
+      }));
+    }
+  };
 
   const value = {
     isAuthenticated,
     isLoading,
     user,
     login,
-    logout
+    logout,
+    updateUser
   };
 
   return (

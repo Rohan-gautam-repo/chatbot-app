@@ -317,10 +317,19 @@ export default function ChatSessionProvider({ children }) {
       )
     );
   };
-  
   // Resend a specific message
-  const resendMessage = async (messageText) => {
-    // Simply call sendMessage with the text to resend
+  const resendMessage = async (messageText, messageId) => {
+    // We want to simulate the behavior of ChatGPT's resend feature
+    // First, delete all messages from this message forward
+    const messageIndex = messages.findIndex(msg => msg.id === messageId);
+    
+    if (messageIndex !== -1) {
+      // Keep messages up to this one (inclusive)
+      const messagesToKeep = messages.slice(0, messageIndex + 1);
+      setMessages(messagesToKeep);
+    }
+    
+    // Now send the message as a new message
     return sendMessage(messageText);
   };
 

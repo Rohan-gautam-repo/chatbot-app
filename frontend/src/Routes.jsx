@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthProvider';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 
 const Routes = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -16,7 +17,6 @@ const Routes = () => {
     if (!isAuthenticated) return <Navigate to="/login" />;
     return children;
   };
-
   return (
     <RouterRoutes>
       <Route path="/login" element={<Login />} />
@@ -28,6 +28,14 @@ const Routes = () => {
             <Dashboard />
           </ProtectedRoute>
         } 
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
       />
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="*" element={<Navigate to="/login" />} />

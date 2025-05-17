@@ -100,8 +100,10 @@ export default function Navbar() {
               <div className="px-4 py-3 border-b border-gray-700/50">
                 <p className="text-sm text-gray-400">Signed in as</p>
                 <p className="text-white font-medium truncate">{user?.email || username}</p>
-              </div>
-              <button className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-700/50 transition-colors duration-200">
+              </div>              <button
+                onClick={() => navigate('/settings')}
+                className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-700/50 transition-colors duration-200"
+              >
                 <Cog6ToothIcon className="h-5 w-5 mr-3" />
                 Settings
               </button>
