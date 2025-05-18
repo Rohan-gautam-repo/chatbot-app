@@ -86,7 +86,7 @@ export const sendChatMessageWithFiles = async (formData, sessionId) => {
   }
 };
 
-export const streamChatMessage = async (message, sessionId, onChunk) => {
+export const streamChatMessage = async (message, sessionId, onChunk, abortSignal) => {
   try {
     const response = await fetch(`${api.defaults.baseURL}/streaming`, {
       method: 'POST',
@@ -94,7 +94,8 @@ export const streamChatMessage = async (message, sessionId, onChunk) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      body: JSON.stringify({ message, session_id: sessionId })
+      body: JSON.stringify({ message, session_id: sessionId }),
+      signal: abortSignal // Pass the abort signal to fetch
     });
 
     if (!response.ok) {
@@ -116,11 +117,14 @@ export const streamChatMessage = async (message, sessionId, onChunk) => {
 
     return { reply: fullResponse };
   } catch (error) {
+    if (error.name === 'AbortError') {
+      return { reply: 'Response generation stopped by user.', aborted: true };
+    }
     throw error;
   }
 };
 
-export const streamChatMessageWithFiles = async (formData, sessionId, onChunk) => {
+export const streamChatMessageWithFiles = async (formData, sessionId, onChunk, abortSignal) => {
   try {
     // Append session ID to the form data
     formData.append('session_id', sessionId);
@@ -130,7 +134,8 @@ export const streamChatMessageWithFiles = async (formData, sessionId, onChunk) =
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      body: formData
+      body: formData,
+      signal: abortSignal // Pass the abort signal to fetch
     });
 
     if (!response.ok) {
@@ -182,6 +187,13 @@ export const streamChatMessageWithFiles = async (formData, sessionId, onChunk) =
       originalAttachments: attachments ? attachments.attachments : null
     };
   } catch (error) {
+    if (error.name === 'AbortError') {
+      return { 
+        reply: 'Response generation stopped by user.',
+        originalAttachments: attachments ? attachments.attachments : null,
+        aborted: true 
+      };
+    }
     throw error;
   }
 };

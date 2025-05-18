@@ -11,7 +11,8 @@ export default function ChatWindow() {
     isLoading: isSessionLoading, 
     sendMessage, 
     currentSession,
-    streamingResponse } = useChatSessions();
+    streamingResponse,
+    isStreaming } = useChatSessions();
   const [isTyping, setIsTyping] = useState(false);
   const [showFileHistory, setShowFileHistory] = useState(false);
   const messagesEndRef = useRef(null);

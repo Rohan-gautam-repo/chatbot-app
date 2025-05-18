@@ -1,8 +1,10 @@
 ﻿import { useState, useEffect, useRef } from "react";
-import { PaperAirplaneIcon, MicrophoneIcon, PaperClipIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { PaperAirplaneIcon, MicrophoneIcon, PaperClipIcon, XMarkIcon, StopIcon } from "@heroicons/react/24/solid";
 import { DocumentTextIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { useChatSessions } from "../context/ChatSessionProvider";
 
 export default function ChatInput({ onSend }) {
+  const { isStreaming, stopStreamingResponse } = useChatSessions();
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
   const [charCount, setCharCount] = useState(0);
@@ -310,18 +312,29 @@ export default function ChatInput({ onSend }) {
           <MicrophoneIcon className="h-5 w-5" />
         </button>
 
-        <button 
-          type="submit"
-          className={`ml-2 p-3 rounded-full transition-all duration-200 transform hover:scale-105 self-end mb-1 ${
-            (!input.trim() && files.length === 0) || isProcessing
-              ? "bg-gray-600 cursor-not-allowed" 
-              : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-          } text-white`}
-          disabled={(!input.trim() && files.length === 0) || isProcessing}
-          title="Send message"
-        >
-          <PaperAirplaneIcon className="h-5 w-5 transform -rotate-90" />
-        </button>
+        {isStreaming ? (
+          <button 
+            type="button"
+            onClick={stopStreamingResponse}
+            className="ml-2 p-3 rounded-full transition-all duration-200 transform hover:scale-105 self-end mb-1 bg-red-500 hover:bg-red-600 text-white"
+            title="Stop generating"
+          >
+            <StopIcon className="h-5 w-5" />
+          </button>
+        ) : (
+          <button 
+            type="submit"
+            className={`ml-2 p-3 rounded-full transition-all duration-200 transform hover:scale-105 self-end mb-1 ${
+              (!input.trim() && files.length === 0) || isProcessing
+                ? "bg-gray-600 cursor-not-allowed" 
+                : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            } text-white`}
+            disabled={(!input.trim() && files.length === 0) || isProcessing}
+            title="Send message"
+          >
+            <PaperAirplaneIcon className="h-5 w-5 transform -rotate-90" />
+          </button>
+        )}
       </div>
     </form>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as chatSessionService from '../services/chatSessionService';
 import { useAuth } from './AuthProvider';
 
@@ -14,6 +14,8 @@ export default function ChatSessionProvider({ children }) {
   const [error, setError] = useState(null);  // Import useAuth hook
   const { user } = useAuth();
   const [streamingResponse, setStreamingResponse] = useState(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const abortControllerRef = useRef(null);
   
   // Load user's sessions
   useEffect(() => {
@@ -170,7 +172,24 @@ export default function ChatSessionProvider({ children }) {
       setIsLoading(false);
     }
   };
-
+  // Stop the streaming response
+  const stopStreamingResponse = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsStreaming(false);
+      
+      // Update the streaming flag to false for the current streaming message
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.isStreaming ? { ...msg, isStreaming: false, text: msg.text + " [stopped]" } : msg
+        )
+      );
+      
+      setStreamingResponse(null);
+    }
+  };
+  
   // Send a message in the current session
   const sendMessage = async (messageContent, hasFiles = false, useStreaming = true) => {
     if (!currentSession) {
@@ -178,6 +197,15 @@ export default function ChatSessionProvider({ children }) {
       const newSession = await createNewSession();
       if (!newSession) return;
     }
+    
+    // If there's an ongoing stream, stop it first
+    if (abortControllerRef.current) {
+      stopStreamingResponse();
+    }
+    
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    setIsStreaming(true);
 
     const tempId = Date.now();
     let userMessage;
@@ -236,8 +264,7 @@ export default function ChatSessionProvider({ children }) {
 
     try {
       let response;
-      
-      if (useStreaming) {
+        if (useStreaming) {
         if (hasFiles) {
           // Send message with files using streaming
           await chatSessionService.streamChatMessageWithFiles(messageContent, currentSession.id, chunk => {
@@ -253,7 +280,7 @@ export default function ChatSessionProvider({ children }) {
                   : msg
               )
             );
-          });
+          }, abortControllerRef.current.signal);
         } else {
           // Send regular text message using streaming
           await chatSessionService.streamChatMessage(messageContent, currentSession.id, chunk => {
@@ -269,10 +296,9 @@ export default function ChatSessionProvider({ children }) {
                   : msg
               )
             );
-          });
+          }, abortControllerRef.current.signal);
         }
-        
-        // Update the streaming flag when complete
+          // Update the streaming flag when complete
         setMessages(prev => 
           prev.map(msg => 
             msg.id === tempId + "-response"
@@ -282,6 +308,8 @@ export default function ChatSessionProvider({ children }) {
         );
         
         setStreamingResponse(null);
+        setIsStreaming(false);
+        abortControllerRef.current = null;
         
       } else {
         // Use the original non-streaming implementation
@@ -482,9 +510,11 @@ export default function ChatSessionProvider({ children }) {
     isLoading,
     error,
     streamingResponse,
+    isStreaming,
     createNewSession,
     selectSession,
     sendMessage,
+    stopStreamingResponse,
     clearMessages,
     updateSessionTitle,
     deleteSession,
