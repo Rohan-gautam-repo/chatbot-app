@@ -267,10 +267,11 @@ export default function ChatInput({ onSend }) {
           <button 
             type="button"
             onClick={handleFileClick}
-            className="ml-2 p-3 rounded-full bg-gray-700 hover:bg-gray-600 text-white self-end mb-1"
-            title="Attach files"
+            className="ml-2 p-3 rounded-full bg-gray-700 hover:bg-gray-600 text-white self-end mb-1 relative"
+            title="Attach files (files are saved for future reference)"
           >
             <PaperClipIcon className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 h-2 w-2 bg-green-400 rounded-full"></span>
           </button>
 
           {/* Attachment options popup */}

@@ -275,10 +275,9 @@ async def chat_with_files(
     db.commit()
     
     processed_files = []
-    extracted_text_combined = ""
-      # Process each uploaded file and delete after processing
+    extracted_text_combined = ""    # Process each uploaded file but keep them for future reference
     for file in files:
-        file_info = file_processor.process_file(file, user_id, delete_after_processing=True)
+        file_info = file_processor.process_file(file, user_id, delete_after_processing=False)
         processed_files.append(file_info)
         if file_info["extracted_text"]:
             extracted_text_combined += f"\n\nText from {file_info['original_name']}:\n{file_info['extracted_text']}"

@@ -81,18 +81,26 @@ class ChromaDBUtil:
                 "session_id": str(session_id),
                 "type": "chat"
             }],
-            ids=[document_id]
-        )
+            ids=[document_id]        )
     
     def get_relevant_context(self, user_id: int, session_id: int, query: str, limit: int = 5):
         """Retrieve the most relevant context based on the user's query."""
-        results = self.chat_collection.query(
-            query_texts=[query],
-            where={"user_id": str(user_id), "session_id": str(session_id)},
-            n_results=limit
-        )
-        
-        return results["documents"][0] if results["documents"] else []
+        try:
+            # Use $and operator to combine conditions according to ChromaDB's query format
+            results = self.chat_collection.query(
+                query_texts=[query],
+                where={"$and": [
+                    {"user_id": str(user_id)},
+                    {"session_id": str(session_id)}
+                ]},
+                n_results=limit
+            )
+            
+            return results["documents"][0] if results["documents"] else []
+        except Exception as e:
+            logger.error(f"ChromaDB query error: {str(e)}")
+            # Return empty list on error to allow fallback mechanism
+            return []
     
     def batch_add_chats(self, chats: List[Dict[str, Any]]):
         """Add multiple chat entries in a batch for initial loading."""

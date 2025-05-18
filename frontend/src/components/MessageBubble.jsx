@@ -1,4 +1,3 @@
-// filepath: d:\MECON\Project\chatbot-app\frontend\src\components\MessageBubble.jsx
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useChatSessions } from '../context/ChatSessionProvider';
@@ -64,10 +63,10 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
                     src={url || preview} 
                     alt={displayName || 'Attached image'}
                     className="rounded-md max-h-64 max-w-full object-contain border border-gray-600"
-                  />
-                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center">
+                  />                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center">
                     <PhotoIcon className="h-3 w-3 mr-1" />
                     {displayName?.length > 20 ? displayName.substring(0, 20) + '...' : displayName}
+                    <span className="ml-2 text-green-400">(preserved)</span>
                   </div>
                 </div>
               </a>
@@ -101,8 +100,7 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
       
       // For document attachments
       return (
-        <div key={`attachment-${index}`} className="mt-2">
-          {url ? (
+        <div key={`attachment-${index}`} className="mt-2">          {url ? (
             <a
               href={url}
               target="_blank" 
@@ -113,6 +111,7 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
               <span className="text-sm text-gray-200 truncate">
                 {displayName}
               </span>
+              <span className="ml-2 text-xs text-green-400">(preserved)</span>
             </a>
           ) : (
             // Display just the file name if no URL is available
@@ -121,12 +120,16 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
               <span className="text-sm text-gray-200 truncate">
                 {displayName}
               </span>
+              <span className="ml-2 text-xs text-green-400">(preserved)</span>
             </div>
           )}
           
           {extracted_text && (
             <div className="mt-1 p-2 bg-gray-700 rounded-md text-xs text-gray-300 border border-gray-600">
-              <p className="font-semibold text-gray-400 mb-1">Extracted Text:</p>
+              <p className="font-semibold text-gray-400 mb-1">
+                Extracted Text: 
+                <span className="text-green-400 ml-2 text-xs">(available for follow-up questions)</span>
+              </p>
               <p className="line-clamp-3">{extracted_text}</p>
               {extracted_text.length > 180 && (
                 <button 

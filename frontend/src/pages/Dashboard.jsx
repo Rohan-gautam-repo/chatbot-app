@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 import ChatWindow from "../components/ChatWindow";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthProvider"; // Fix the import path
+import ChatPopup from "../popup/ChatPopup";
 
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,7 +35,9 @@ export default function Dashboard() {
   }
 
   return (
+  
     <div className="flex h-screen overflow-hidden bg-gray-900">
+      
       {/* Sidebar - with subtle glass effect */}
       <div className="bg-gray-800/80 backdrop-blur-sm border-r border-gray-700/50 shadow-lg z-10">
         <Sidebar />

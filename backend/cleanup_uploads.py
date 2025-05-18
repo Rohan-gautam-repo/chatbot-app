@@ -6,17 +6,16 @@ that weren't deleted during processing.
 
 Usage:
     python cleanup_uploads.py [age_in_hours] [--dry-run]
-    
-    age_in_hours: Optional. Files older than this will be deleted. Default is 24 hours.
+      age_in_hours: Optional. Files older than this will be deleted. Default is 1440 hours (2 months).
     --dry-run: Optional. If specified, the script will only show what would be deleted
                without actually removing any files.
 
 Examples:
-    # Delete files older than 24 hours (default)
+    # Delete files older than 1440 hours (2 months) (default)
     python cleanup_uploads.py
     
-    # Delete files older than 48 hours
-    python cleanup_uploads.py 48
+    # Delete files older than 720 hours (1 month)
+    python cleanup_uploads.py 720
     
     # Show what would be deleted without actually deleting
     python cleanup_uploads.py --dry-run
@@ -27,15 +26,15 @@ Examples:
 Scheduled Task Examples:
     # To run as a cron job (Linux/Unix/macOS):
     # Add to crontab with: crontab -e
-    # Run daily at 2:00 AM:
-    0 2 * * * cd /path/to/backend && python cleanup_uploads.py
+    # Run monthly on the 1st day at 2:00 AM:
+    0 2 1 * * cd /path/to/backend && python cleanup_uploads.py
     
     # To run as a scheduled task (Windows):
     # 1. Create a .bat file with the following content:
     #    @echo off
     #    cd /d D:\MECON\Project\chatbot-app\backend
     #    python cleanup_uploads.py
-    # 2. Use Task Scheduler to run this .bat file daily
+    # 2. Use Task Scheduler to run this .bat file monthly
 """
 
 import sys
@@ -68,9 +67,8 @@ def list_old_files(max_age_hours):
                 
     return old_files
 
-def main():
-    # Default to 24 hours if no argument is provided
-    max_age_hours = 24
+def main():    # Default to 1440 hours (2 months) if no argument is provided
+    max_age_hours = 1440  # 60 days × 24 hours
     dry_run = False
       # Parse command-line arguments
     for arg in sys.argv[1:]:
@@ -80,7 +78,7 @@ def main():
             try:
                 max_age_hours = float(arg)
             except ValueError:
-                print(f"Error: Invalid age value '{arg}'. Using default of 24 hours.")
+                print(f"Error: Invalid age value '{arg}'. Using default of 1440 hours (2 months).")
     
     # Run the cleanup with or without dry-run mode
     deleted_count = file_processor.cleanup_old_files(max_age_hours, dry_run=dry_run)

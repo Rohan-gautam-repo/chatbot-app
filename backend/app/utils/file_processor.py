@@ -1,9 +1,8 @@
 ﻿import os
 import uuid
-import pytesseract
-from PIL import Image
-from pdf2image import convert_from_path
-import tempfile
+import pytesseract  # Still needed for image OCR
+from PIL import Image  # Still needed for image processing
+import pdfplumber  # Use pdfplumber for PDF text extraction
 import docx2txt
 import shutil
 import time
@@ -57,16 +56,22 @@ class FileProcessor:
                 
             # Handle PDF files
             elif content_type == "application/pdf":
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    # Convert PDF to images
-                    pages = convert_from_path(file_path, output_folder=temp_dir)
+                try:
+                    # Use pdfplumber for PDF text extraction
                     text_parts = []
+                    with pdfplumber.open(file_path) as pdf:
+                        for page in pdf.pages:
+                            page_text = page.extract_text() or ""
+                            if page_text.strip():
+                                text_parts.append(page_text)
                     
-                    # Extract text from each page
-                    for page in pages:
-                        text_parts.append(pytesseract.image_to_string(page))
-                    
-                    extracted_text = "\n\n".join(text_parts)
+                    if text_parts:
+                        extracted_text = "\n\n".join(text_parts)
+                    else:
+                        extracted_text = "[PDF doesn't contain extractable text. PDF may be scanned or image-based.]"
+                except Exception as e:
+                    print(f"PDF extraction error: {str(e)}")
+                    extracted_text = f"[PDF text extraction failed: {str(e)}]"
                     
             # Handle Word documents
             elif content_type == "application/msword" or content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -94,7 +99,7 @@ class FileProcessor:
             print(f"Error deleting file {file_path}: {str(e)}")
             return False
     
-    def process_file(self, file, user_id, delete_after_processing=True):
+    def process_file(self, file, user_id, delete_after_processing=False):
         """Process an uploaded file - save it, extract text, and optionally delete it"""
         file_info = self.save_file(file, user_id)
         
@@ -109,19 +114,21 @@ class FileProcessor:
         else:
             file_info["extracted_text"] = "[Text extraction not supported for this file type]"
         
-        # Delete the file after processing if requested
+        # Delete the file after processing only if explicitly requested
         if delete_after_processing:
             was_deleted = self.delete_file(file_info["path"])
             file_info["deleted"] = was_deleted
+        else:
+            file_info["deleted"] = False
             
         return file_info
     
-    def cleanup_old_files(self, max_age_hours=24, dry_run=False):
+    def cleanup_old_files(self, max_age_hours=1440, dry_run=False):
         """
         Clean up files older than the specified age in hours
         
         Parameters:
-        - max_age_hours: Files older than this many hours will be deleted
+        - max_age_hours: Files older than this many hours will be deleted (default: 1440 hours / 2 months)
         - dry_run: If True, only count files that would be deleted without actually deleting
         
         Returns:

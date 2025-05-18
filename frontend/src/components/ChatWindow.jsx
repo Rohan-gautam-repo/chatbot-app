@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
+import FileHistoryPanel from "./FileHistoryPanel";
 import { useChatSessions } from "../context/ChatSessionProvider";
-import { DocumentTextIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { DocumentTextIcon, PhotoIcon, FolderOpenIcon } from "@heroicons/react/24/outline";
 
 export default function ChatWindow() {
   const { 
     messages, 
     isLoading: isSessionLoading, 
     sendMessage, 
-    currentSession 
-  } = useChatSessions();
+    currentSession   } = useChatSessions();
   const [isTyping, setIsTyping] = useState(false);
+  const [showFileHistory, setShowFileHistory] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Scroll to bottom on new message
@@ -36,8 +37,24 @@ export default function ChatWindow() {
 
   return (
     <div className="flex flex-col h-full bg-gray-900">
-      {/* Welcome screen or messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+      {/* Welcome screen or messages */}      <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 relative">
+        {/* File history panel */}
+        <FileHistoryPanel 
+          isOpen={showFileHistory} 
+          onClose={() => setShowFileHistory(false)}
+        />
+          
+        {/* File history toggle button */}
+        {currentSession && messages.length > 0 && (
+          <button 
+            onClick={() => setShowFileHistory(!showFileHistory)}
+            className="absolute top-4 right-4 z-20 bg-gray-700 hover:bg-gray-600 text-gray-200 p-2 rounded-full shadow-lg"
+            title={showFileHistory ? "Close file history" : "View uploaded files"}
+          >
+            <FolderOpenIcon className="h-5 w-5" />
+          </button>
+        )}
+          
         {showWelcome ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="h-24 w-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mb-6">
