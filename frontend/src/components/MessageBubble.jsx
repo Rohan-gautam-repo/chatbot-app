@@ -150,9 +150,8 @@ function MessageBubble({ sender, text, messageId, attachments = [], isStreaming 
       >
         {/* Action buttons that appear on hover for user messages */}
         {isUser && showActions && (
-          <div className="flex items-center mr-2 opacity-0 group-hover:opacity-100 transition-opacity">            
-            <button 
-              onClick={() => resendMessage(text, messageId)}
+          <div className="flex items-center mr-2 opacity-0 group-hover:opacity-100 transition-opacity">              <button 
+              onClick={() => resendMessage(text, messageId, normalizedAttachments)}
               className="text-gray-400 hover:text-blue-400 p-1 rounded mr-1 transition-colors"
               title="Resend"
             >

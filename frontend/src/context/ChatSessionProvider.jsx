@@ -416,9 +416,8 @@ export default function ChatSessionProvider({ children }) {
         !msg.id.toString().includes(messageId.toString())
       )
     );
-  };
-  // Resend a specific message
-  const resendMessage = async (messageText, messageId) => {
+  };  // Resend a specific message
+  const resendMessage = async (messageText, messageId, attachments = []) => {
     // We want to simulate the behavior of ChatGPT's resend feature
     // First, delete all messages from this message forward
     const messageIndex = messages.findIndex(msg => msg.id === messageId);
@@ -429,8 +428,17 @@ export default function ChatSessionProvider({ children }) {
       setMessages(messagesToKeep);
     }
     
-    // Now send the message as a new message
-    return sendMessage(messageText);
+    // For simplicity, we'll just resend the message text and note that attachments 
+    // should be re-uploaded if needed
+    if (attachments && attachments.length > 0) {
+      console.log("Message had attachments that couldn't be automatically resent");
+      // Add a note to the UI
+      const noteText = `${messageText} \n[Note: Original message had ${attachments.length} attachment(s) that need to be re-uploaded if needed]`;
+      return sendMessage(noteText);
+    } else {
+      // For text-only messages, just resend the text
+      return sendMessage(messageText);
+    }
   };
 
   // Update a session's title
