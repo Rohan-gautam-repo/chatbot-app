@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ChatWindow from "../components/ChatWindow";
 import Navbar from "../components/Navbar";
-import { useAuth } from "../context/AuthProvider"; // Fix the import path
-import ChatPopup from "../popup/ChatPopup";
+import { useAuth } from "../context/AuthProvider";
 
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useAuth();

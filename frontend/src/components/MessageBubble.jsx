@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { useChatSessions } from '../context/ChatSessionProvider';
 import { DocumentTextIcon, PhotoIcon } from "@heroicons/react/24/outline";
 
-function MessageBubble({ sender, text, messageId, attachments = [] }) {
+function MessageBubble({ sender, text, messageId, attachments = [], isStreaming }) {
     const isUser = sender === 'user';
     const { deleteMessage, resendMessage } = useChatSessions();
     const [showActions, setShowActions] = useState(false);
@@ -45,11 +45,10 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
       
       const { type, url, name, extracted_text, preview } = attachment;
       const displayName = name || attachment.original_name || attachment.filename || 'Attachment';
-      
-      // For image attachments
+        // For image attachments
       if (type && type.startsWith('image/')) {
         return (
-          <div key={`attachment-${index}`} className="mt-2 relative">
+          <div key={`attachment-${index}`} className="mt-3 relative">
             {(url || preview) ? (
               <a 
                 href={url || preview} 
@@ -58,12 +57,13 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
                 className="block"
                 title="View full image"
               >
-                <div className="relative">
+                <div className="relative group">
                   <img 
                     src={url || preview} 
                     alt={displayName || 'Attached image'}
-                    className="rounded-md max-h-64 max-w-full object-contain border border-gray-600"
-                  />                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded flex items-center">
+                    className="rounded-lg max-h-64 max-w-full object-contain border border-gray-600 hover:border-blue-400 transition-colors shadow-md"
+                  />                  
+                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md flex items-center">
                     <PhotoIcon className="h-3 w-3 mr-1" />
                     {displayName?.length > 20 ? displayName.substring(0, 20) + '...' : displayName}
                     <span className="ml-2 text-green-400">(preserved)</span>
@@ -72,7 +72,7 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
               </a>
             ) : (
               // Display just the file name if no URL is available
-              <div className="flex items-center p-2 bg-gray-700 rounded-md">
+              <div className="flex items-center p-2 bg-gray-700 rounded-md shadow-sm">
                 <PhotoIcon className="h-5 w-5 text-blue-400 mr-2" />
                 <span className="text-sm text-gray-200 truncate">
                   {displayName || 'Image file'}
@@ -97,43 +97,43 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
           </div>
         );
       }
-      
-      // For document attachments
+        // For document attachments
       return (
-        <div key={`attachment-${index}`} className="mt-2">          {url ? (
+        <div key={`attachment-${index}`} className="mt-3">
+          {url ? (
             <a
               href={url}
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center p-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
+              className="flex items-center p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors shadow-sm border border-gray-600 hover:border-blue-400"
             >
               <DocumentTextIcon className="h-5 w-5 text-blue-400 mr-2" />
               <span className="text-sm text-gray-200 truncate">
                 {displayName}
               </span>
-              <span className="ml-2 text-xs text-green-400">(preserved)</span>
+              <span className="ml-2 text-xs text-green-400 font-medium">(preserved)</span>
             </a>
           ) : (
             // Display just the file name if no URL is available
-            <div className="flex items-center p-2 bg-gray-700 rounded-md">
+            <div className="flex items-center p-3 bg-gray-700 rounded-lg shadow-sm border border-gray-600">
               <DocumentTextIcon className="h-5 w-5 text-blue-400 mr-2" />
               <span className="text-sm text-gray-200 truncate">
                 {displayName}
               </span>
-              <span className="ml-2 text-xs text-green-400">(preserved)</span>
+              <span className="ml-2 text-xs text-green-400 font-medium">(preserved)</span>
             </div>
           )}
           
           {extracted_text && (
-            <div className="mt-1 p-2 bg-gray-700 rounded-md text-xs text-gray-300 border border-gray-600">
-              <p className="font-semibold text-gray-400 mb-1">
-                Extracted Text: 
-                <span className="text-green-400 ml-2 text-xs">(available for follow-up questions)</span>
+            <div className="mt-2 p-3 bg-gray-700/70 rounded-lg text-xs text-gray-300 border border-gray-600 backdrop-blur-sm shadow-sm">
+              <p className="font-semibold text-gray-300 mb-1 flex items-center justify-between">
+                <span>Extracted Text</span>
+                <span className="text-green-400 text-xs font-medium">(available for follow-up questions)</span>
               </p>
               <p className="line-clamp-3">{extracted_text}</p>
               {extracted_text.length > 180 && (
                 <button 
-                  className="text-blue-400 hover:text-blue-300 mt-1 text-xs"
+                  className="text-blue-400 hover:text-blue-300 mt-2 text-xs px-2 py-1 bg-gray-800/50 rounded-md"
                   onClick={() => alert(extracted_text)}
                 >
                   View full text
@@ -143,18 +143,17 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
           )}
         </div>
       );
-    };
-
-    return (
-      <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} group`} 
+    };    return (
+      <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} group mb-4`} 
            onMouseEnter={() => setShowActions(true)}
            onMouseLeave={() => setShowActions(false)}
       >
         {/* Action buttons that appear on hover for user messages */}
         {isUser && showActions && (
-          <div className="flex items-center mr-2 opacity-0 group-hover:opacity-100 transition-opacity">            <button 
+          <div className="flex items-center mr-2 opacity-0 group-hover:opacity-100 transition-opacity">            
+            <button 
               onClick={() => resendMessage(text, messageId)}
-              className="text-gray-400 hover:text-blue-400 p-1 rounded mr-1"
+              className="text-gray-400 hover:text-blue-400 p-1 rounded mr-1 transition-colors"
               title="Resend"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -163,7 +162,7 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
             </button>
             <button 
               onClick={() => deleteMessage(messageId)}
-              className="text-gray-400 hover:text-red-400 p-1 rounded"
+              className="text-gray-400 hover:text-red-400 p-1 rounded transition-colors"
               title="Delete"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -174,13 +173,12 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
         )}
 
         <div 
-          className={`rounded-2xl px-6 py-3 max-w-[70%] ${
+          className={`rounded-2xl px-6 py-4 max-w-[70%] shadow-lg ${
             isUser 
               ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white' 
-              : 'bg-gray-800 text-gray-200 border border-gray-700'
+              : 'bg-gray-800 text-gray-200 border border-gray-700 backdrop-blur-sm'
           }`}
-        >
-          {isUser ? (
+        >{isUser ? (
             <>
               <p className="text-sm">{text || ''}</p>
               {normalizedAttachments.length > 0 && (
@@ -190,12 +188,14 @@ function MessageBubble({ sender, text, messageId, attachments = [] }) {
               )}
             </>
           ) : (
-            <>
-              <div className="text-sm ai-response markdown-content">
-                {formattedText ? (
-                  <ReactMarkdown>{formattedText}</ReactMarkdown>
-                ) : (
-                  <p>No response available</p>
+            <>              <div className="text-sm ai-response markdown-content">
+                <ReactMarkdown>{formattedText || ""}</ReactMarkdown>
+                {isStreaming && (
+                  <div className="inline-flex items-center space-x-1 ml-2 mt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" style={{ animationDelay: '300ms' }}></span>
+                  </div>
                 )}
               </div>
               {normalizedAttachments.length > 0 && (

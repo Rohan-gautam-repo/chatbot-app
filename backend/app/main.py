@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
-from app.routes import auth, chat, chat_sessions, user as user_routes, file_context
+from app.routes import auth, chat, chat_sessions, user as user_routes, file_context, streaming
 from app.database.db import Base, engine
 from app.models import user  # This imports the models so they're registered with SQLAlchemy
 from app.database.migrations import run_migrations
@@ -65,6 +65,7 @@ app.include_router(chat.router)
 app.include_router(chat_sessions.router)
 app.include_router(user_routes.router)
 app.include_router(file_context.router)
+app.include_router(streaming.router)
 
 # Mount the uploads directory for static file serving
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")

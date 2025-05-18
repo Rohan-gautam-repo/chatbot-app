@@ -85,3 +85,103 @@ export const sendChatMessageWithFiles = async (formData, sessionId) => {
     throw error.response ? error.response.data : new Error('Network error');
   }
 };
+
+export const streamChatMessage = async (message, sessionId, onChunk) => {
+  try {
+    const response = await fetch(`${api.defaults.baseURL}/streaming`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({ message, session_id: sessionId })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullResponse = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true });
+      fullResponse += chunk;
+      onChunk(chunk);
+    }
+
+    return { reply: fullResponse };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const streamChatMessageWithFiles = async (formData, sessionId, onChunk) => {
+  try {
+    // Append session ID to the form data
+    formData.append('session_id', sessionId);
+    
+    const response = await fetch(`${api.defaults.baseURL}/streaming/with-files`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullResponse = '';
+    let attachments = null;
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true });
+      
+      // The first chunk is expected to be a JSON string with attachment info
+      if (!attachments && chunk.trim().startsWith('{')) {
+        const newlineIndex = chunk.indexOf('\n');
+        if (newlineIndex > -1) {
+          try {
+            const attachmentJson = chunk.substring(0, newlineIndex);
+            attachments = JSON.parse(attachmentJson);
+            
+            // Only pass the content after the attachments JSON
+            const contentAfterJson = chunk.substring(newlineIndex + 1);
+            if (contentAfterJson) {
+              fullResponse += contentAfterJson;
+              onChunk(contentAfterJson);
+            }
+          } catch (e) {
+            console.error("Error parsing attachments JSON:", e);
+            fullResponse += chunk;
+            onChunk(chunk);
+          }
+        } else {
+          fullResponse += chunk;
+          onChunk(chunk);
+        }
+      } else {
+        fullResponse += chunk;
+        onChunk(chunk);
+      }
+    }
+
+    return { 
+      reply: fullResponse,
+      originalAttachments: attachments ? attachments.attachments : null
+    };
+  } catch (error) {
+    throw error;
+  }
+};

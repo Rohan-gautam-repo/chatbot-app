@@ -10,7 +10,8 @@ export default function ChatWindow() {
     messages, 
     isLoading: isSessionLoading, 
     sendMessage, 
-    currentSession   } = useChatSessions();
+    currentSession,
+    streamingResponse } = useChatSessions();
   const [isTyping, setIsTyping] = useState(false);
   const [showFileHistory, setShowFileHistory] = useState(false);
   const messagesEndRef = useRef(null);
@@ -19,11 +20,14 @@ export default function ChatWindow() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-
   const handleSend = async (userInput, hasFiles = false) => {
     if ((typeof userInput === 'string' && !userInput.trim()) && !hasFiles) return;
     
-    setIsTyping(true);
+    // We'll only set isTyping to true if there's no ongoing streaming messages
+    const hasStreamingMessage = messages.some(msg => msg.isStreaming);
+    if (!hasStreamingMessage) {
+      setIsTyping(true);
+    }
     
     try {
       await sendMessage(userInput, hasFiles);
@@ -82,8 +86,7 @@ export default function ChatWindow() {
                 </h2>
               </div>
             )}
-              {/* Messages */}
-            {messages.map((msg, index) => (
+              {/* Messages */}            {messages.map((msg, index) => (
               msg.isError ? (
                 <div
                   key={msg.id || index}
@@ -93,24 +96,25 @@ export default function ChatWindow() {
                     <p className="text-sm">{msg.text}</p>
                   </div>
                 </div>
-              ) : (
-                <MessageBubble 
+              ) : (                <MessageBubble 
                   key={msg.id || index} 
                   sender={msg.sender} 
                   text={msg.text} 
                   messageId={msg.id || index}
                   attachments={msg.attachments}
+                  isStreaming={msg.isStreaming}
                 />
               )
             ))}
-
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="rounded-2xl px-6 py-3 bg-gray-800 text-gray-400 border border-gray-700 animate-pulse">
+            
+            {/* Only show the typing indicator if we're not already showing a streaming message */}
+            {isTyping && !messages.some(msg => msg.isStreaming) && (
+              <div className="flex justify-start mb-4">
+                <div className="rounded-2xl px-6 py-4 bg-gray-800 text-gray-400 border border-gray-700 shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
                   </div>
                 </div>
               </div>

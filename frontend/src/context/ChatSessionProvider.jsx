@@ -13,7 +13,8 @@ export default function ChatSessionProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);  // Import useAuth hook
   const { user } = useAuth();
-
+  const [streamingResponse, setStreamingResponse] = useState(null);
+  
   // Load user's sessions
   useEffect(() => {
     const loadSessions = async () => {
@@ -171,7 +172,7 @@ export default function ChatSessionProvider({ children }) {
   };
 
   // Send a message in the current session
-  const sendMessage = async (messageContent, hasFiles = false) => {
+  const sendMessage = async (messageContent, hasFiles = false, useStreaming = true) => {
     if (!currentSession) {
       // Create a new session if none exists
       const newSession = await createNewSession();
@@ -214,66 +215,129 @@ export default function ChatSessionProvider({ children }) {
     
     // Add user message to UI immediately
     setMessages(prev => [...prev, userMessage]);
+    
+    // Create initial AI message with empty text - will be updated during streaming
+    if (useStreaming) {
+      const initialAiMessage = {
+        id: tempId + "-response",
+        sender: "nexora",
+        text: "",
+        timestamp: new Date(),
+        attachments: [],
+        isStreaming: true
+      };
+      
+      setMessages(prev => [...prev, initialAiMessage]);
+      setStreamingResponse({
+        id: tempId + "-response",
+        text: ""
+      });
+    }
 
     try {
       let response;
       
-      if (hasFiles) {
-        // Send message with files
-        response = await chatSessionService.sendChatMessageWithFiles(messageContent, currentSession.id);
-      } else {
-        // Send regular text message
-        response = await chatSessionService.sendChatMessage(messageContent, currentSession.id);
-      }
-        // Add AI response to messages
-      const aiMessage = {
-        id: tempId + "-response",
-        sender: "nexora",
-        text: response.reply,
-        timestamp: new Date(),
-        attachments: response.attachments || []
-      };
-      
-      // Log for debugging        console.log("Response from server:", response);
-        
-        // Log attachment information for debugging
-        if (response.originalAttachments) {
-          console.log("Original attachments:", response.originalAttachments);
+      if (useStreaming) {
+        if (hasFiles) {
+          // Send message with files using streaming
+          await chatSessionService.streamChatMessageWithFiles(messageContent, currentSession.id, chunk => {
+            setStreamingResponse(prev => ({
+              id: tempId + "-response",
+              text: prev ? prev.text + chunk : chunk
+            }));
+            
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.id === tempId + "-response"
+                  ? { ...msg, text: (msg.text || "") + chunk }
+                  : msg
+              )
+            );
+          });
+        } else {
+          // Send regular text message using streaming
+          await chatSessionService.streamChatMessage(messageContent, currentSession.id, chunk => {
+            setStreamingResponse(prev => ({
+              id: tempId + "-response",
+              text: prev ? prev.text + chunk : chunk
+            }));
+            
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.id === tempId + "-response"
+                  ? { ...msg, text: (msg.text || "") + chunk }
+                  : msg
+              )
+            );
+          });
         }
-      
-      setMessages(prev => {        // Clean up any URL.createObjectURL references to prevent memory leaks
-        prev.forEach(msg => {
-          if (msg.attachments) {
-            msg.attachments.forEach(att => {
-              if (att.preview && typeof att.preview === 'string' && att.preview.startsWith('blob:')) {
-                URL.revokeObjectURL(att.preview);
-                console.log("Revoked blob URL:", att.preview, "for file:", att.name);
-              }
-            });
-          }
-        });
+        
+        // Update the streaming flag when complete
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === tempId + "-response"
+              ? { ...msg, isStreaming: false }
+              : msg
+          )
+        );
+        
+        setStreamingResponse(null);
+        
+      } else {
+        // Use the original non-streaming implementation
+        if (hasFiles) {
+          // Send message with files
+          response = await chatSessionService.sendChatMessageWithFiles(messageContent, currentSession.id);
+        } else {
+          // Send regular text message
+          response = await chatSessionService.sendChatMessage(messageContent, currentSession.id);
+        }
+        
+        // Add AI response to messages
+        const aiMessage = {
+          id: tempId + "-response",
+          sender: "nexora",
+          text: response.reply,
+          timestamp: new Date(),
+          attachments: response.attachments || []
+        };
+        
+        setMessages(prev => {
+          // Clean up any URL.createObjectURL references to prevent memory leaks
+          prev.forEach(msg => {
+            if (msg.attachments) {
+              msg.attachments.forEach(att => {
+                if (att.preview && typeof att.preview === 'string' && att.preview.startsWith('blob:')) {
+                  URL.revokeObjectURL(att.preview);
+                  console.log("Revoked blob URL:", att.preview, "for file:", att.name);
+                }
+              });
+            }
+          });
+          
           // Replace temporary attachments with server-processed ones while preserving names
-        return prev.map(msg => {
-          if (msg.id === tempId && hasFiles) {
-            // Merge the attachment information, preserving names from the original attachments
-            const mergedAttachments = response.originalAttachments ? 
-              response.originalAttachments.map((serverAttachment, index) => {
-                // Find the matching original attachment to preserve its name
-                const originalAttachment = msg.attachments[index];
-                return {
-                  ...serverAttachment,
-                  name: originalAttachment?.name || serverAttachment.name || 'Attachment'
-                };
-              }) : msg.attachments;
-              
-            return {
-              ...msg,
-              attachments: mergedAttachments
-            };
-          }
-          return msg;
-        }).concat(aiMessage);
-      });
+          return prev.map(msg => {
+            if (msg.id === tempId && hasFiles) {
+              // Merge the attachment information, preserving names from the original attachments
+              const mergedAttachments = response.originalAttachments ? 
+                response.originalAttachments.map((serverAttachment, index) => {
+                  // Find the matching original attachment to preserve its name
+                  const originalAttachment = msg.attachments[index];
+                  return {
+                    ...serverAttachment,
+                    name: originalAttachment?.name || serverAttachment.name || 'Attachment'
+                  };
+                }) : msg.attachments;
+                
+              return {
+                ...msg,
+                attachments: mergedAttachments
+              };
+            }
+            return msg;
+          }).concat(aiMessage);
+        });
+      }
 
       // Update the sessions list to show this one was recently used
       const updatedSessions = sessions.map(s => 
@@ -300,7 +364,15 @@ export default function ChatSessionProvider({ children }) {
         isError: true
       };
       
-      setMessages(prev => [...prev, errorMessage]);
+      // Remove streaming message if it exists
+      if (useStreaming) {
+        setMessages(prev => 
+          prev.filter(msg => msg.id !== tempId + "-response").concat(errorMessage)
+        );
+        setStreamingResponse(null);
+      } else {
+        setMessages(prev => [...prev, errorMessage]);
+      }
     }
   };
 
@@ -403,13 +475,13 @@ export default function ChatSessionProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  };
-  const value = {
+  };  const value = {
     sessions,
     currentSession,
     messages,
     isLoading,
     error,
+    streamingResponse,
     createNewSession,
     selectSession,
     sendMessage,
