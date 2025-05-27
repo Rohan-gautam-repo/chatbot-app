@@ -4,6 +4,7 @@ from app.database.db import SessionLocal
 from app.models.user import Chat
 from sqlalchemy.orm import Session
 import logging
+from app.config.dataset_config import DATASET_PATH  # Import dataset config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

@@ -10,6 +10,7 @@ import json
 from app.utils.auth_jwt import get_current_user
 from app.utils.chroma_db import chroma_db
 from app.utils.file_processor import file_processor
+from app.config.dataset_config import DATASET_PATH  # Import dataset config
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -182,7 +183,14 @@ def chat_with_chroma(
         user_id=user_id,
         session_id=req.session_id,
         query=req.message,
-        limit=5  # Get 5 most semantically relevant chat exchanges
+        limit=5
+    )
+    # Add RAG dataset context (domain-specific)
+    rag_context = chroma_db.get_relevant_context(
+        user_id='rag',
+        session_id='rag',
+        query=req.message,
+        limit=3
     )
     
     # Also get the most recent message to maintain conversation flow
@@ -199,6 +207,11 @@ def chat_with_chroma(
         context += "Relevant conversation history:\n"
         for exchange in relevant_context:
             context += f"{exchange}\n\n"
+    # Add RAG context if available
+    if rag_context:
+        context += "Relevant domain knowledge:\n"
+        for chunk in rag_context:
+            context += f"{chunk}\n\n"
     
     # Add recent message for conversational flow
     if recent_message:
